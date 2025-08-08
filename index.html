@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Detection Security Camera</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen active">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <img src="assets/file_000000007d6061fd901ccfe963c7d569.png" alt="Logo">
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-bar">
+                    <div class="loading-bar-fill"></div>
+                </div>
+                <div class="loading-text">Loading... <span id="loadingPercent">0%</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intro Scenes -->
+    <div id="introScenes" class="intro-scenes">
+        <!-- Scene 1 -->
+        <div class="intro-scene" id="scene1">
+            <img src="assets/file_00000000715c61f8aaec03884fabb575.png" alt="Scene 1" class="scene-image">
+        </div>
+        
+        <!-- Scene 2 -->
+        <div class="intro-scene" id="scene2">
+            <img src="assets/file_000000001e3462308102f8b9c449e32f.png" alt="Scene 2" class="scene-image">
+        </div>
+    </div>
+
+    <!-- Terms and Conditions Screen -->
+    <div id="termsScreen" class="terms-screen">
+        <div class="terms-container">
+            <div class="terms-logo">
+                <img src="assets/file_000000007d6061fd901ccfe963c7d569.png" alt="Logo">
+            </div>
+            <h2>Terms and Conditions</h2>
+            
+            <div class="terms-content">
+                <div class="disclaimer-section">
+                    <h3>Disclaimer</h3>
+                    <p>
+                        <!-- PLACEHOLDER DISCLAIMER TEXT - EDIT THIS -->
+                        This Motion Detection Security Camera application is provided "as is" without warranty of any kind. 
+                        The developers assume no responsibility for any damages or losses that may occur from the use of this application.
+                        
+                        By using this application, you acknowledge that:
+                        - You are responsible for complying with all local laws regarding surveillance and recording
+                        - You will respect the privacy rights of others
+                        - You will not use this application for any illegal purposes
+                        - The application requires camera permissions to function properly
+                    </p>
+                </div>
+                
+                <div class="terms-section">
+                    <h3>Terms and Conditions</h3>
+                    <p>
+                        <!-- PLACEHOLDER TERMS TEXT - EDIT THIS -->
+                        1. ACCEPTANCE OF TERMS
+                        By accessing and using this application, you accept and agree to be bound by the terms and provision of this agreement.
+                        
+                        2. USE LICENSE
+                        Permission is granted to temporarily use this application for personal, non-commercial purposes only.
+                        
+                        3. PRIVACY POLICY
+                        Your use of this application is also governed by our Privacy Policy. All captured images and data are stored locally on your device.
+                        
+                        4. LIMITATIONS
+                        In no event shall the developers be liable for any damages arising out of the use or inability to use this application.
+                        
+                        5. MODIFICATIONS
+                        We reserve the right to modify these terms at any time. Your continued use of the application constitutes acceptance of any changes.
+                        
+                        6. GOVERNING LAW
+                        These terms shall be governed by and construed in accordance with applicable laws.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="terms-actions">
+                <label class="terms-checkbox">
+                    <input type="checkbox" id="acceptTerms">
+                    <span class="checkbox-text">I have read and accept the terms and conditions and disclaimer</span>
+                </label>
+                <button id="continueBtn" class="continue-btn" disabled>Continue to Application</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" style="display: none;">
+        <!-- Black Screen Overlay -->
+        <div id="blackScreenOverlay" class="black-screen-overlay">
+            <div id="blackScreenText" class="black-screen-text">
+                <p>🔒 Stealth Mode Active</p>
+                <p>Double-tap to reveal interface</p>
+            </div>
+        </div>
+
+        <!-- Header with Logo -->
+        <header class="app-header">
+            <div class="header-left">
+                <img src="assets/file_000000007d6061fd901ccfe963c7d569.png" alt="Logo" class="header-logo">
+                <h1>Motion Security Camera</h1>
+            </div>
+            <div class="header-controls">
+                <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
+                <button id="notificationBtn" class="icon-btn" aria-label="Notifications">
+                    🔔
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="camera">
+                <span class="nav-icon">📹</span>
+                <span class="nav-label">Monitor</span>
+            </button>
+            <button class="nav-item" data-tab="captures">
+                <span class="nav-icon">📸</span>
+                <span class="nav-label">Captures</span>
+            </button>
+            <button class="nav-item" data-tab="alerts">
+                <span class="nav-icon">🚨</span>
+                <span class="nav-label">Alerts</span>
+            </button>
+            <button class="nav-item" data-tab="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Dashboard</span>
+            </button>
+        </nav>
+
+        <!-- Camera View -->
+        <div id="cameraTab" class="tab-content active">
+            <div class="camera-container">
+                <video id="cameraFeed" autoplay playsinline muted></video>
+                <canvas id="motionCanvas"></canvas>
+                <canvas id="captureCanvas" style="display: none;"></canvas>
+                <div class="camera-overlay">
+                    <div class="motion-indicator" id="motionIndicator">
+                        <span class="motion-icon">🎯</span>
+                        Motion Detected!
+                    </div>
+                    <div class="camera-info">
+                        <span id="cameraStatus">Initializing...</span>
+                        <span id="timestamp"></span>
+                    </div>
+                    <div class="detection-status" id="detectionStatus">
+                        <span class="status-dot"></span>
+                        <span id="detectionText">Motion Detection: OFF</span>
+                    </div>
+                </div>
+                
+                <div class="motion-controls">
+                    <div class="main-toggle">
+                        <button id="toggleDetection" class="large-toggle-btn">
+                            <span class="toggle-icon">👁️</span>
+                            <span class="toggle-text">Start Monitoring</span>
+                        </button>
+                    </div>
+                    
+                    <div class="control-grid">
+                        <div class="control-item">
+                            <label for="sensitivitySlider">Detection Sensitivity:</label>
+                            <div class="slider-container">
+                                <input type="range" id="sensitivitySlider" min="1" max="100" value="30">
+                                <span id="sensitivityValue">30%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-item">
+                            <label for="captureDelay">Capture Delay (seconds):</label>
+                            <div class="slider-container">
+                                <input type="range" id="captureDelay" min="1" max="10" value="3">
+                                <span id="delayValue">3s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <button id="manualCapture" class="action-btn">
+                            <span>📸</span>
+                            Manual Capture
+                        </button>
+                        <button id="clearMotionArea" class="action-btn">
+                            <span>🔄</span>
+                            Reset Detection
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-label">Session Captures:</span>
+                        <span class="stat-value" id="sessionCaptures">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Last Motion:</span>
+                        <span class="stat-value" id="lastMotion">Never</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Storage Used:</span>
+                        <span class="stat-value" id="storageIndicator">0 MB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Captures View -->
+        <div id="capturesTab" class="tab-content">
+            <div class="captures-container">
+                <div class="captures-header">
+                    <h2>Motion Captures</h2>
+                    <div class="filter-controls">
+                        <select id="dateFilter">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                        <button id="exportCaptures" class="primary-btn">Export All</button>
+                        <button id="clearCaptures" class="danger-btn">Clear All</button>
+                    </div>
+                </div>
+                <div id="capturesGrid" class="captures-grid">
+                    <!-- Captures will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts View -->
+        <div id="alertsTab" class="tab-content">
+            <div class="alerts-container">
+                <h2>Motion Alerts</h2>
+                <div class="alert-settings">
+                    <label class="switch">
+                        <input type="checkbox" id="enableAlerts" checked>
+                        <span class="slider"></span>
+                        <span class="switch-label">Enable Notifications</span>
+                    </label>
+                    <label class="switch">
+                        <input type="checkbox" id="soundAlerts">
+                        <span class="slider"></span>
+                        <span class="switch-label">Sound Alerts</span>
+                    </label>
+                    <label class="switch">
+                        <input type="checkbox" id="vibrationAlerts">
+                        <span class="slider"></span>
+                        <span class="switch-label">Vibration Alerts</span>
+                    </label>
+                </div>
+                <div class="alert-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="today">Today</button>
+                    <button class="filter-btn" data-filter="unread">Unread</button>
+                </div>
+                <div id="alertsList" class="alerts-list">
+                    <!-- Alerts will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboardTab" class="tab-content">
+            <div class="dashboard-container">
+                <h2>Security Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📸</div>
+                        <div class="stat-value" id="totalCaptures">0</div>
+                        <div class="stat-label">Total Captures</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚨</div>
+                        <div class="stat-value" id="totalAlerts">0</div>
+                        <div class="stat-label">Motion Events</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-value" id="storageUsed">0 MB</div>
+                        <div class="stat-label">Storage Used</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-value" id="uptime">0h</div>
+                        <div class="stat-label">Monitor Time</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Motion Activity (Last 24 Hours)</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+                
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div id="recentActivityList">
+                        <!-- Recent activities will be listed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section">
+                        <h3>Camera Settings</h3>
+                        <div class="setting-item">
+                            <label for="imageQuality">Image Quality:</label>
+                            <select id="imageQuality">
+                                <option value="0.5">Low (Saves Space)</option>
+                                <option value="0.7" selected>Medium (Balanced)</option>
+                                <option value="0.9">High (Best Quality)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="captureResolution">Capture Resolution:</label>
+                            <select id="captureResolution">
+                                <option value="640x480">640x480</option>
+                                <option value="1280x720" selected>1280x720 (HD)</option>
+                                <option value="1920x1080">1920x1080 (Full HD)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>Detection Settings</h3>
+                        <div class="setting-item">
+                            <label for="motionThreshold">Motion Threshold (%):</label>
+                            <input type="number" id="motionThreshold" value="2" min="0.5" max="10" step="0.5">
+                        </div>
+                        <div class="setting-item">
+                            <label for="cooldownPeriod">Cooldown Period (seconds):</label>
+                            <input type="number" id="cooldownPeriod" value="5" min="1" max="30">
+                        </div>
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="nightMode">
+                                <span class="slider"></span>
+                                <span class="switch-label">Enhanced Night Detection</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>Privacy Settings</h3>
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="blackScreenMode">
+                                <span class="slider"></span>
+                                <span class="switch-label">Black Screen While Active</span>
+                            </label>
+                        </div>
+                        <div class="black-screen-info">
+                            <p class="info-text">
+                                <strong>ℹ️ Black Screen Mode:</strong><br>
+                                When enabled, the screen will go black when motion detection is activated. 
+                                The app continues to function normally in the background.<br><br>
+                                <strong>To deactivate:</strong> Double-tap anywhere on the black screen.<br>
+                                <strong>To view hint:</strong> Single-tap shows instructions for 3 seconds.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>Storage Settings</h3>
+                        <div class="setting-item">
+                            <label for="maxImages">Max Images to Store:</label>
+                            <input type="number" id="maxImages" value="100" min="10" max="500">
+                        </div>
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="autoDelete" checked>
+                                <span class="slider"></span>
+                                <span class="switch-label">Auto-delete old captures</span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label for="retentionDays">Retention Period (days):</label>
+                            <input type="number" id="retentionDays" value="7" min="1" max="30">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveSettings" class="primary-btn">Save Settings</button>
+                    <button id="resetSettings" class="secondary-btn">Reset to Default</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Viewer Modal -->
+        <div id="imageModal" class="modal">
+            <div class="modal-content image-modal">
+                <div class="modal-header">
+                    <h2>Captured Image</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalImage" alt="Captured motion">
+                    <div class="image-info">
+                        <span id="imageDate"></span>
+                        <span id="imageTime"></span>
+                        <span id="imageSize"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="downloadImage" class="primary-btn">Download</button>
+                    <button id="shareImage" class="secondary-btn">Share</button>
+                    <button id="deleteImage" class="danger-btn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="intro.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
